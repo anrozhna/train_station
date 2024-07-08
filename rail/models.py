@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 
 class Crew(models.Model):
@@ -7,6 +8,10 @@ class Crew(models.Model):
     last_name = models.CharField(max_length=255)
 
     def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
     class Meta:
@@ -35,6 +40,10 @@ class Route(models.Model):
         Station, on_delete=models.CASCADE, related_name="routes_as_destination"
     )
     distance = models.IntegerField()
+
+    @property
+    def route_info(self):
+        return f"{self.source.name}-{self.destination.name} ({self.distance} km)"
 
     def __str__(self):
         return f"{self.source.name}-{self.destination.name}"
@@ -122,3 +131,28 @@ class Ticket(models.Model):
     class Meta:
         unique_together = ("carriage", "seat", "journey")
         ordering = ["carriage", "seat"]
+
+    @staticmethod
+    def validate_ticket(carriage, seat, train, error_to_raise):
+        for ticket_attr_value, ticket_attr_name, train_attr_name in [
+            (carriage, "carriage", "cargo_num"),
+            (seat, "seat", "places_in_cargo"),
+        ]:
+            count_attrs = getattr(train, train_attr_name)
+            if not (1 <= ticket_attr_value <= count_attrs):
+                raise error_to_raise(
+                    {
+                        ticket_attr_name: f"{ticket_attr_name} "
+                                          f"number must be in available range: "
+                                          f"(1, {train_attr_name}): "
+                                          f"(1, {count_attrs})"
+                    }
+                )
+
+    def clean(self):
+        Ticket.validate_ticket(
+            self.carriage,
+            self.seat,
+            self.journey.train,
+            ValidationError,
+        )
