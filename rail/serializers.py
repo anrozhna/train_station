@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from rail.models import (
@@ -30,6 +31,17 @@ class RouteSerializer(serializers.ModelSerializer):
         fields = ("id", "source", "destination", "distance")
 
 
+class RouteListSerializer(RouteSerializer):
+    source = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+    destination = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+
+
 class TrainTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainType
@@ -48,6 +60,13 @@ class TrainSerializer(serializers.ModelSerializer):
         )
 
 
+class TrainListSerializer(TrainSerializer):
+    train_type = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+
+
 class JourneySerializer(serializers.ModelSerializer):
     class Meta:
         model = Journey
@@ -61,10 +80,26 @@ class JourneySerializer(serializers.ModelSerializer):
         )
 
 
-class OrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ("id", "created_at", "user")
+class JourneyListSerializer(JourneySerializer):
+    route = serializers.SlugRelatedField(
+        slug_field="route_info",
+        read_only=True,
+    )
+    train = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+    crew = serializers.SlugRelatedField(
+        slug_field="full_name",
+        read_only=True,
+        many=True,
+    )
+    departure_time = serializers.DateTimeField(
+        format="%m.%d.%Y %I:%M:%S",
+    )
+    arrival_time = serializers.DateTimeField(
+        format="%m.%d.%Y %I:%M:%S",
+    )
 
 
 class TicketSerializer(serializers.ModelSerializer):
@@ -77,3 +112,30 @@ class TicketSerializer(serializers.ModelSerializer):
             "journey",
             "order",
         )
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(
+        format="%m.%d.%Y %I:%M:%S",
+    )
+    user = serializers.SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+    )
+    tickets = TicketSerializer(
+        many=True,
+        read_only=False,
+        allow_empty=False,
+    )
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            tickets_data = validated_data.pop("tickets")
+            order = Order.objects.create(**validated_data)
+            for ticket_data in tickets_data:
+                Ticket.objects.create(order=order, **ticket_data)
+            return order
+
+    class Meta:
+        model = Order
+        fields = ("id", "created_at", "user", "tickets")
