@@ -1,4 +1,4 @@
-from rest_framework import permissions, viewsets
+from rest_framework import viewsets
 
 from rail.models import (
     Crew,
@@ -17,8 +17,15 @@ from rail.serializers import (
     TrainSerializer,
     JourneySerializer,
     OrderSerializer,
-    TicketSerializer, RouteListSerializer, TrainListSerializer, JourneyListSerializer,
+    RouteListSerializer,
+    TrainListSerializer,
+    JourneyListSerializer,
 )
+
+
+def _params_to_ints(query_string):
+    """Converts a list of string IDs to a list of integers"""
+    return [int(str_id) for str_id in query_string.split(",")]
 
 
 class CrewViewSet(viewsets.ModelViewSet):
@@ -55,6 +62,15 @@ class TrainViewSet(viewsets.ModelViewSet):
             return TrainListSerializer
         return TrainSerializer
 
+    def get_queryset(self):
+        queryset = self.queryset
+        train_types = self.request.query_params.get("train_types", None)
+
+        if train_types:
+            train_types = _params_to_ints(train_types)
+            queryset = queryset.filter(train_type__id__in=train_types)
+        return queryset.distinct()
+
 
 class JourneyViewSet(viewsets.ModelViewSet):
     queryset = Journey.objects.all().prefetch_related("route", "train", "crew")
@@ -64,6 +80,15 @@ class JourneyViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return JourneyListSerializer
         return JourneySerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        train = self.request.query_params.get("train", None)
+
+        if train:
+            train = _params_to_ints(train)
+            queryset = queryset.filter(train__id__in=train)
+        return queryset.distinct()
 
 
 class OrderViewSet(viewsets.ModelViewSet):
