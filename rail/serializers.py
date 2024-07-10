@@ -67,6 +67,10 @@ class TrainListSerializer(TrainSerializer):
     )
 
 
+class TrainRetrieveSerializer(TrainSerializer):
+    train_type = TrainTypeSerializer(read_only=True)
+
+
 class JourneySerializer(serializers.ModelSerializer):
     class Meta:
         model = Journey
