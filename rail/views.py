@@ -22,6 +22,7 @@ from rail.serializers import (
     JourneyListSerializer,
     TrainRetrieveSerializer,
     JourneyRetrieveSerializer,
+    OrderRetrieveSerializer,
 )
 
 
@@ -42,7 +43,6 @@ class StationViewSet(viewsets.ModelViewSet):
 
 class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.all().prefetch_related("source", "destination")
-    serializer_class = RouteSerializer
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -57,7 +57,6 @@ class TrainTypeViewSet(viewsets.ModelViewSet):
 
 class TrainViewSet(viewsets.ModelViewSet):
     queryset = Train.objects.all().prefetch_related("train_type")
-    serializer_class = TrainSerializer
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -78,7 +77,6 @@ class TrainViewSet(viewsets.ModelViewSet):
 
 class JourneyViewSet(viewsets.ModelViewSet):
     queryset = Journey.objects.all().prefetch_related("route", "train", "crew")
-    serializer_class = JourneySerializer
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -99,7 +97,11 @@ class JourneyViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return OrderRetrieveSerializer
+        return OrderSerializer
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)

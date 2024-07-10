@@ -113,6 +113,11 @@ class JourneyRetrieveSerializer(JourneyListSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
+    journey = serializers.SlugRelatedField(
+        slug_field="journey_info",
+        read_only=True,
+    )
+
     class Meta:
         model = Ticket
         fields = (
@@ -121,6 +126,10 @@ class TicketSerializer(serializers.ModelSerializer):
             "seat",
             "journey",
         )
+
+
+class TicketRetrieveSerializer(TicketSerializer):
+    journey = JourneyListSerializer(read_only=True)
 
     def validate(self, attrs):
         data = super(TicketSerializer, self).validate(attrs=attrs)
@@ -151,3 +160,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ("id", "created_at", "tickets")
+
+
+class OrderRetrieveSerializer(OrderSerializer):
+    tickets = TicketRetrieveSerializer(many=True, read_only=True)
