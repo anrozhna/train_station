@@ -12,7 +12,7 @@ class Crew(models.Model):
 
     @property
     def full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return self.__str__()
 
     class Meta:
         ordering = ["first_name", "last_name"]
@@ -90,10 +90,14 @@ class Journey(models.Model):
     arrival_time = models.DateTimeField()
 
     def __str__(self):
-        return (
-            f"{str(self.train)}, {str(self.route)}, "
-            f"departure: {self.departure_time}, arrival: {self.arrival_time}"
-        )
+        departure_str = self.departure_time.strftime("%m.%d.%Y %I:%M:%S")
+        arrival_str = self.arrival_time.strftime("%m.%d.%Y %I:%M:%S")
+        return (f"{str(self.train)}, {str(self.route)}, "
+                f"departure: {departure_str}, arrival: {arrival_str}")
+
+    @property
+    def journey_info(self):
+        return self.__str__()
 
     class Meta:
         unique_together = ("route", "train", "departure_time")
@@ -127,6 +131,10 @@ class Ticket(models.Model):
         return (
             f"{str(self.journey)} (carriage: {self.carriage}, seat: {self.seat})"
         )
+
+    @property
+    def ticket_info(self):
+        return self.__str__()
 
     class Meta:
         unique_together = ("carriage", "seat", "journey")
