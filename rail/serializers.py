@@ -106,6 +106,12 @@ class JourneyListSerializer(JourneySerializer):
     )
 
 
+class JourneyRetrieveSerializer(JourneyListSerializer):
+    route = RouteListSerializer(read_only=True)
+    train = TrainListSerializer(read_only=True)
+    crew = CrewSerializer(many=True, read_only=True)
+
+
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket

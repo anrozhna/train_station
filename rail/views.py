@@ -21,6 +21,7 @@ from rail.serializers import (
     TrainListSerializer,
     JourneyListSerializer,
     TrainRetrieveSerializer,
+    JourneyRetrieveSerializer,
 )
 
 
@@ -82,6 +83,8 @@ class JourneyViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return JourneyListSerializer
+        if self.action == "retrieve":
+            return JourneyRetrieveSerializer
         return JourneySerializer
 
     def get_queryset(self):
