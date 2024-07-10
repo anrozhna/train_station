@@ -110,18 +110,20 @@ class TicketSerializer(serializers.ModelSerializer):
             "carriage",
             "seat",
             "journey",
-            "order",
         )
+
+    def validate(self, attrs):
+        data = super(TicketSerializer, self).validate(attrs=attrs)
+        Ticket.validate_ticket(
+            attrs["carriage"],
+            attrs["seat"],
+            attrs["journey"].train,
+            serializers.ValidationError
+        )
+        return data
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(
-        format="%m.%d.%Y %I:%M:%S",
-    )
-    user = serializers.SlugRelatedField(
-        slug_field="username",
-        read_only=True,
-    )
     tickets = TicketSerializer(
         many=True,
         read_only=False,
@@ -138,4 +140,4 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ("id", "created_at", "user", "tickets")
+        fields = ("id", "created_at", "tickets")
