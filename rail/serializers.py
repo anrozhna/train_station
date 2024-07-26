@@ -166,11 +166,11 @@ class TicketListSerializer(serializers.ModelSerializer):
         )
 
 
-class TicketRetrieveSerializer(TicketSerializer):
+class TicketRetrieveSerializer(TicketListSerializer):
     journey = JourneyListSerializer(read_only=True)
 
     def validate(self, attrs):
-        data = super(TicketSerializer, self).validate(attrs=attrs)
+        data = super(TicketListSerializer, self).validate(attrs=attrs)
         Ticket.validate_ticket(
             attrs["carriage"],
             attrs["seat"],
