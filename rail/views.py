@@ -1,3 +1,4 @@
+from django.db.models import F, Count
 from rest_framework import viewsets
 
 from rail.models import (
@@ -72,11 +73,14 @@ class TrainViewSet(viewsets.ModelViewSet):
         if train_types:
             train_types = _params_to_ints(train_types)
             queryset = queryset.filter(train_type__id__in=train_types)
+
         return queryset.distinct()
 
 
 class JourneyViewSet(viewsets.ModelViewSet):
-    queryset = Journey.objects.all().prefetch_related("route", "train", "crew")
+    queryset = Journey.objects.all().prefetch_related(
+        "route__source", "route__destination", "train", "crew"
+    )
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -92,7 +96,14 @@ class JourneyViewSet(viewsets.ModelViewSet):
         if train:
             train = _params_to_ints(train)
             queryset = queryset.filter(train__id__in=train)
-        return queryset.distinct()
+
+        if self.action == "list":
+            queryset = queryset.annotate(
+                num_seats=F("train__cargo_num") * F("train__places_in_cargo"),
+                tickets_available=F("num_seats") - Count("tickets"),
+            )
+
+        return queryset.distinct().order_by("id")
 
 
 class OrderViewSet(viewsets.ModelViewSet):
