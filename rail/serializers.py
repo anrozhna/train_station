@@ -200,5 +200,9 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ("id", "created_at", "tickets")
 
 
+class OrderListSerializer(OrderSerializer):
+    tickets = TicketListSerializer(many=True, read_only=True)
+
+
 class OrderRetrieveSerializer(OrderSerializer):
     tickets = TicketRetrieveSerializer(many=True, read_only=True)

@@ -23,7 +23,7 @@ from rail.serializers import (
     JourneyListSerializer,
     TrainRetrieveSerializer,
     JourneyRetrieveSerializer,
-    OrderRetrieveSerializer,
+    OrderRetrieveSerializer, OrderListSerializer,
 )
 
 
@@ -110,12 +110,15 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
 
     def get_serializer_class(self):
+        if self.action == "list":
+            return OrderListSerializer
         if self.action == "retrieve":
             return OrderRetrieveSerializer
         return OrderSerializer
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        queryset = self.queryset.filter(user=self.request.user)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
