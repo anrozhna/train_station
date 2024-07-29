@@ -43,7 +43,7 @@ class StationViewSet(viewsets.ModelViewSet):
 
 
 class RouteViewSet(viewsets.ModelViewSet):
-    queryset = Route.objects.all().prefetch_related("source", "destination")
+    queryset = Route.objects.all().select_related("source", "destination")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -78,9 +78,7 @@ class TrainViewSet(viewsets.ModelViewSet):
 
 
 class JourneyViewSet(viewsets.ModelViewSet):
-    queryset = Journey.objects.all().prefetch_related(
-        "route__source", "route__destination", "train", "crew"
-    )
+    queryset = Journey.objects.all()
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -98,9 +96,25 @@ class JourneyViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(train__id__in=train)
 
         if self.action == "list":
-            queryset = queryset.annotate(
-                num_seats=F("train__cargo_num") * F("train__places_in_cargo"),
-                tickets_available=F("num_seats") - Count("tickets"),
+            queryset = (
+                queryset.select_related(
+                    "route__source",
+                    "route__destination",
+                    "train",
+                ).prefetch_related("crew")
+                .annotate(
+                    num_seats=F("train__cargo_num") * F("train__places_in_cargo"),
+                    tickets_available=F("num_seats") - Count("tickets"),
+                )
+            )
+
+        if self.action == "retrieve":
+            queryset = (
+                queryset.select_related(
+                    "route__source",
+                    "route__destination",
+                    "train__train_type",
+                ).prefetch_related("crew")
             )
 
         return queryset.distinct().order_by("id")
@@ -118,6 +132,14 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.queryset.filter(user=self.request.user)
+
+        if self.action in ("list", "retrieve"):
+            queryset = queryset.prefetch_related(
+                "tickets__journey__route",
+                "tickets__journey__train",
+                "tickets__journey__crew"
+            )
+
         return queryset
 
     def perform_create(self, serializer):

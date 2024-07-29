@@ -151,10 +151,7 @@ class JourneyRetrieveSerializer(JourneyListSerializer):
 
 
 class TicketListSerializer(serializers.ModelSerializer):
-    journey = serializers.SlugRelatedField(
-        slug_field="journey_info",
-        read_only=True,
-    )
+    journey = JourneyListSerializer(read_only=True)
 
     class Meta:
         model = Ticket
