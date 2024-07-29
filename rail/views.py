@@ -1,5 +1,6 @@
 from django.db.models import F, Count
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 
 from rail.models import (
     Crew,
@@ -120,8 +121,15 @@ class JourneyViewSet(viewsets.ModelViewSet):
         return queryset.distinct().order_by("id")
 
 
+class OrderSetPagination(PageNumberPagination):
+    page_size = 2
+    page_size_query_param = "page_size"
+    max_page_size = 20
+
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
+    pagination_class = OrderSetPagination
 
     def get_serializer_class(self):
         if self.action == "list":
