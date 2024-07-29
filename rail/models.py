@@ -1,5 +1,9 @@
+import os
+import uuid
+
 from django.conf import settings
 from django.db import models
+from django.utils.text import slugify
 from rest_framework.exceptions import ValidationError
 
 
@@ -63,6 +67,13 @@ class TrainType(models.Model):
         ordering = ["name"]
 
 
+def train_image_file_path(instance, filename):
+    _, extension = os.path.splitext(filename)
+    filename = f"{slugify(instance.name)}-{uuid.uuid4()}{extension}"
+    dirname = f"{slugify(type(instance).__name__)}s/"
+    return os.path.join("uploads/", dirname, filename)
+
+
 class Train(models.Model):
     name = models.CharField(max_length=255, unique=True)
     cargo_num = models.IntegerField()
@@ -70,6 +81,7 @@ class Train(models.Model):
     train_type = models.ForeignKey(
         TrainType, on_delete=models.CASCADE, related_name="trains"
     )
+    image = models.ImageField(null=True, upload_to=train_image_file_path)
 
     def __str__(self):
         return self.name
@@ -94,10 +106,6 @@ class Journey(models.Model):
         arrival_str = self.arrival_time.strftime("%m.%d.%Y %I:%M:%S")
         return (f"{str(self.train)}, {str(self.route)}, "
                 f"departure: {departure_str}, arrival: {arrival_str}")
-
-    @property
-    def journey_info(self):
-        return self.__str__()
 
     class Meta:
         unique_together = ("route", "train", "departure_time")

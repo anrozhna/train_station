@@ -1,6 +1,9 @@
 from django.db.models import F, Count
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 
 from rail.models import (
     Crew,
@@ -24,7 +27,7 @@ from rail.serializers import (
     JourneyListSerializer,
     TrainRetrieveSerializer,
     JourneyRetrieveSerializer,
-    OrderRetrieveSerializer, OrderListSerializer,
+    OrderRetrieveSerializer, OrderListSerializer, TrainImageSerializer,
 )
 
 
@@ -65,6 +68,8 @@ class TrainViewSet(viewsets.ModelViewSet):
             return TrainListSerializer
         if self.action == "retrieve":
             return TrainRetrieveSerializer
+        if self.action == "upload_image":
+            return TrainImageSerializer
         return TrainSerializer
 
     def get_queryset(self):
@@ -76,6 +81,20 @@ class TrainViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(train_type__id__in=train_types)
 
         return queryset.distinct()
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        permission_classes=[IsAdminUser],
+        url_path="upload-image"
+    )
+    def upload_image(self, request, pk=None):
+        """Endpoint for uploading image to specific train."""
+        train = self.get_object()
+        serializer = self.get_serializer(train, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class JourneyViewSet(viewsets.ModelViewSet):
