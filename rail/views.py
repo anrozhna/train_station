@@ -1,4 +1,5 @@
 from django.db.models import F, Count
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -74,7 +75,7 @@ class TrainViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.queryset
-        train_types = self.request.query_params.get("train_types", None)
+        train_types = self.request.query_params.get("train-types", None)
 
         if train_types:
             train_types = _params_to_ints(train_types)
@@ -95,6 +96,20 @@ class TrainViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "train-types",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by train_type id (ex. ?train-types=2,5)",
+                required=False,
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get a list of trains with filtering by train_type id."""
+        return super().list(request, *args, **kwargs)
 
 
 class JourneyViewSet(viewsets.ModelViewSet):
