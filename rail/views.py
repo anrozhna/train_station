@@ -15,6 +15,7 @@ from rail.models import (
     Journey,
     Order,
 )
+from rail.permissions import IsAdminOrIsAuthenticatedReadOnly
 from rail.serializers import (
     CrewSerializer,
     StationSerializer,
@@ -40,15 +41,18 @@ def _params_to_ints(query_string):
 class CrewViewSet(viewsets.ModelViewSet):
     queryset = Crew.objects.all().prefetch_related("journeys")
     serializer_class = CrewSerializer
+    permission_classes = (IsAdminOrIsAuthenticatedReadOnly,)
 
 
 class StationViewSet(viewsets.ModelViewSet):
     queryset = Station.objects.all()
     serializer_class = StationSerializer
+    permission_classes = (IsAdminOrIsAuthenticatedReadOnly,)
 
 
 class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.all().select_related("source", "destination")
+    permission_classes = (IsAdminOrIsAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -59,10 +63,12 @@ class RouteViewSet(viewsets.ModelViewSet):
 class TrainTypeViewSet(viewsets.ModelViewSet):
     queryset = TrainType.objects.all()
     serializer_class = TrainTypeSerializer
+    permission_classes = (IsAdminOrIsAuthenticatedReadOnly,)
 
 
 class TrainViewSet(viewsets.ModelViewSet):
     queryset = Train.objects.all().prefetch_related("train_type")
+    permission_classes = (IsAdminOrIsAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -87,7 +93,7 @@ class TrainViewSet(viewsets.ModelViewSet):
         methods=["POST"],
         detail=True,
         permission_classes=[IsAdminUser],
-        url_path="upload-image"
+        url_path="train-upload-image"
     )
     def upload_image(self, request, pk=None):
         """Endpoint for uploading image to specific train."""
@@ -114,6 +120,7 @@ class TrainViewSet(viewsets.ModelViewSet):
 
 class JourneyViewSet(viewsets.ModelViewSet):
     queryset = Journey.objects.all()
+    permission_classes = (IsAdminOrIsAuthenticatedReadOnly, )
 
     def get_serializer_class(self):
         if self.action == "list":
