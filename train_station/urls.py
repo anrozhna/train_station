@@ -27,7 +27,7 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("rail/", include("rail.urls", namespace="rail")),
+    path("", include("rail.urls", namespace="rail")),
     path("user/", include("user.urls", namespace="user")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
