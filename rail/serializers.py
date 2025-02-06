@@ -105,10 +105,10 @@ class JourneyListSerializer(serializers.ModelSerializer):
         many=True,
     )
     departure_time = serializers.DateTimeField(
-        format="%m.%d.%Y %I:%M:%S",
+        format="%Y-%m-%d %H:%M:%S",
     )
     arrival_time = serializers.DateTimeField(
-        format="%m.%d.%Y %I:%M:%S",
+        format="%Y-%m-%d %H:%M:%S",
     )
     num_seats = serializers.IntegerField(read_only=True)
 
