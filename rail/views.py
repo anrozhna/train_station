@@ -3,7 +3,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from rail.models import (
@@ -29,7 +29,9 @@ from rail.serializers import (
     JourneyListSerializer,
     TrainRetrieveSerializer,
     JourneyRetrieveSerializer,
-    OrderRetrieveSerializer, OrderListSerializer, TrainImageSerializer,
+    OrderRetrieveSerializer,
+    OrderListSerializer,
+    TrainImageSerializer,
 )
 
 
@@ -171,6 +173,7 @@ class OrderSetPagination(PageNumberPagination):
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     pagination_class = OrderSetPagination
+    permission_classes = (IsAuthenticated, )
 
     def get_serializer_class(self):
         if self.action == "list":
