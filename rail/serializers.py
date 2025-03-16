@@ -57,6 +57,7 @@ class TrainSerializer(serializers.ModelSerializer):
             "cargo_num",
             "places_in_cargo",
             "train_type",
+            "image"
         )
 
 
