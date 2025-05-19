@@ -1,0 +1,7 @@
+venv
+db.sqlite3r
+README.md
+media
+__pycache__
+Dockerfile
+docker-compose.yaml
