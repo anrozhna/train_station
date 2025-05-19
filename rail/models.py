@@ -47,7 +47,8 @@ class Route(models.Model):
 
     @property
     def route_info(self):
-        return f"{self.source.name}-{self.destination.name} ({self.distance} km)"
+        return (f"{self.source.name}-{self.destination.name} "
+                f"({self.distance} km)")
 
     def __str__(self):
         return f"{self.source.name}-{self.destination.name}"
@@ -137,7 +138,8 @@ class Ticket(models.Model):
 
     def __str__(self):
         return (
-            f"{str(self.journey)} (carriage: {self.carriage}, seat: {self.seat})"
+            f"{str(self.journey)} (carriage: {self.carriage}, "
+            f"seat: {self.seat})"
         )
 
     @property
@@ -158,10 +160,11 @@ class Ticket(models.Model):
             if not (1 <= ticket_attr_value <= count_attrs):
                 raise error_to_raise(
                     {
-                        ticket_attr_name: f"{ticket_attr_name} "
-                                          f"number must be in available range: "
-                                          f"(1, {train_attr_name}): "
-                                          f"(1, {count_attrs})"
+                        ticket_attr_name:
+                            f"{ticket_attr_name} "
+                            f"number must be in available range: "
+                            f"(1, {train_attr_name}): "
+                            f"(1, {count_attrs})"
                     }
                 )
 
